@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistem Perparkiran Kampus — Berbasis Keamanan</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --surface2: #f1f5f9;
+    --border: #e2e8f0;
+    --accent: #1d4ed8;
+    --accent2: #7c3aed;
+    --accent3: #059669;
+    --accent4: #d97706;
+    --danger: #dc2626;
+    --text: #0f172a;
+    --muted: #64748b;
+    --light: #94a3b8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .hero {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #2563eb 100%);
+    padding: 50px 40px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; left: 0; right: 0;
+    height: 40px;
+    background: var(--bg);
+    clip-path: ellipse(55% 100% at 50% 100%);
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-size: clamp(20px, 3.5vw, 36px);
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.25;
+    margin-bottom: 10px;
+  }
+  .hero p { color: rgba(255,255,255,0.75); font-size: 14px; }
+  .hero-chips {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .hero-chip {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 2px;
+    padding: 24px 40px 0;
+    overflow-x: auto;
+    border-bottom: 2px solid var(--border);
+  }
+  .tab {
+    padding: 10px 18px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+    white-space: nowrap;
+    border-radius: 6px 6px 0 0;
+    background: transparent;
+  }
+  .tab:hover { color: var(--accent); background: rgba(29,78,216,0.04); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(29,78,216,0.04); }
+
+  .content { padding: 32px 40px; max-width: 1100px; margin: 0 auto; display: none; }
+  .content.active { display: block; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title::before {
+    content: '';
+    width: 3px;
+    height: 14px;
+    background: var(--accent);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* FLOW */
+  .flow { display: flex; flex-direction: column; }
+  .flow-step { display: flex; gap: 18px; }
+  .flow-left { display: flex; flex-direction: column; align-items: center; width: 44px; flex-shrink: 0; }
+  .flow-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0; z-index: 1;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .flow-line { width: 2px; flex: 1; min-height: 20px; background: var(--border); margin: 4px 0; }
+  .flow-body { flex: 1; padding-bottom: 24px; }
+  .flow-body h3 { font-size: 15px; font-weight: 700; margin-bottom: 5px; color: var(--text); }
+  .flow-body p { font-size: 13px; color: var(--muted); line-height: 1.65; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .tag {
+    padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 600;
+    font-family: 'Fira Code', monospace;
+  }
+  .tag-blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+  .tag-green { background: #f0fdf4; color: #059669; border: 1px solid #bbf7d0; }
+  .tag-orange { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+  .tag-purple { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; }
+  .tag-red { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+  /* TECH */
+  .tech-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .tech-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    background: var(--surface);
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .tech-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .tech-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .tc-blue::before { background: linear-gradient(90deg, #1d4ed8, #60a5fa); }
+  .tc-purple::before { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+  .tc-green::before { background: linear-gradient(90deg, #059669, #34d399); }
+  .tc-orange::before { background: linear-gradient(90deg, #d97706, #fbbf24); }
+  .tc-red::before { background: linear-gradient(90deg, #dc2626, #f87171); }
+  .tech-layer { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px; }
+  .tc-blue .tech-layer { color: #1d4ed8; }
+  .tc-purple .tech-layer { color: #7c3aed; }
+  .tc-green .tech-layer { color: #059669; }
+  .tc-orange .tech-layer { color: #d97706; }
+  .tc-red .tech-layer { color: #dc2626; }
+  .tech-name { font-size: 15px; font-weight: 700; margin-bottom: 5px; }
+  .tech-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .tech-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+  .pill {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 2px 8px; font-size: 11px;
+    font-family: 'Fira Code', monospace; color: var(--text);
+  }
+
+  /* DB */
+  .db-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+  .db-table { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: box-shadow 0.2s; }
+  .db-table:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .db-header { padding: 12px 16px; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+  .db-row {
+    padding: 8px 16px; font-size: 12px; font-family: 'Fira Code', monospace;
+    border-top: 1px solid var(--border); display: flex; justify-content: space-between;
+    align-items: center; gap: 8px;
+  }
+  .db-row:hover { background: var(--surface2); }
+  .col-type { color: var(--light); font-size: 11px; }
+  .bpk { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; border-radius: 3px; padding: 1px 6px; font-size: 10px; font-weight: 700; }
+  .bfk { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; border-radius: 3px; padding: 1px 6px; font-size: 10px; font-weight: 700; }
+  .buq { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 3px; padding: 1px 6px; font-size: 10px; font-weight: 700; }
+  .bnn { background: #f0fdf4; color: #059669; border: 1px solid #bbf7d0; border-radius: 3px; padding: 1px 6px; font-size: 10px; font-weight: 700; }
+
+  /* FITUR */
+  .fitur-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .fitur-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+    display: flex; flex-direction: column; gap: 8px; transition: all 0.2s;
+  }
+  .fitur-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.07); transform: translateY(-2px); }
+  .fitur-icon { font-size: 28px; }
+  .fitur-title { font-size: 14px; font-weight: 700; }
+  .fitur-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .fitur-badge {
+    display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px;
+    border-radius: 4px; margin-top: 4px; width: fit-content;
+  }
+
+  /* JUDUL */
+  .judul-card {
+    border: 2px solid var(--accent);
+    background: linear-gradient(135deg, #eff6ff, #fff);
+    border-radius: 12px; padding: 20px 24px; margin-bottom: 14px;
+  }
+  .judul-card.alt { border-color: var(--border); background: var(--surface2); }
+  .judul-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+  .judul-text { font-size: 14px; font-weight: 600; line-height: 1.6; color: var(--text); font-style: italic; }
+
+  /* RELASI */
+  .rel-item {
+    display: flex; align-items: center; gap: 12px; padding: 10px 16px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; font-size: 13px; margin-bottom: 8px;
+  }
+  .rel-from { color: #d97706; font-family: 'Fira Code', monospace; font-weight: 600; font-size: 12px; }
+  .rel-to { color: #059669; font-family: 'Fira Code', monospace; font-weight: 600; font-size: 12px; }
+  .rel-arrow { color: var(--muted); font-size: 16px; }
+  .rel-type { margin-left: auto; font-size: 11px; color: var(--muted); background: #fff; border: 1px solid var(--border); padding: 2px 10px; border-radius: 4px; white-space: nowrap; }
+
+  @media (max-width: 600px) {
+    .tabs, .content { padding-left: 16px; padding-right: 16px; }
+    .hero { padding: 40px 20px 50px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge">Skripsi Sistem Informasi · Kampus</div>
+  <h1>Sistem Informasi Perparkiran Kampus<br>Berbasis Web & QR Code</h1>
+  <p>Fokus pada keamanan & monitoring kendaraan — tanpa sistem pembayaran</p>
+  <div class="hero-chips">
+    <span class="hero-chip">🔐 Keamanan Kendaraan</span>
+    <span class="hero-chip">📷 Identifikasi Masuk/Keluar</span>
+    <span class="hero-chip">📊 Monitoring Real-time</span>
+    <span class="hero-chip">🆓 Gratis / Tanpa Tarif</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('judul')">📌 Judul & Fokus</div>
+  <div class="tab" onclick="showTab('analogi')">🔄 Analogi Sistem</div>
+  <div class="tab" onclick="showTab('fitur')">⭐ Fitur Sistem</div>
+  <div class="tab" onclick="showTab('tech')">🛠️ Tech Stack</div>
+  <div class="tab" onclick="showTab('database')">🗄️ Database</div>
+</div>
+
+<!-- TAB JUDUL -->
+<div id="judul" class="content active">
+  <div class="card">
+    <div class="card-title">Rekomendasi Judul Skripsi</div>
+
+    <div class="judul-card">
+      <div class="judul-label">⭐ Judul Utama (Paling Direkomendasikan)</div>
+      <div class="judul-text">"Sistem Informasi Perparkiran Kendaraan Berbasis Web dan QR Code untuk Meningkatkan Keamanan di Lingkungan Kampus [Nama Kampus]"</div>
+    </div>
+
+    <div class="judul-card alt">
+      <div class="judul-label">Alternatif 1</div>
+      <div class="judul-text">"Rancang Bangun Sistem Monitoring Parkir Kendaraan Mahasiswa Berbasis QR Code di [Nama Kampus]"</div>
+    </div>
+
+    <div class="judul-card alt">
+      <div class="judul-label">Alternatif 2</div>
+      <div class="judul-text">"Sistem Informasi Manajemen Parkir Kampus Berbasis Web dengan QR Code sebagai Media Identifikasi Kendaraan"</div>
+    </div>
+
+    <div class="judul-card alt">
+      <div class="judul-label">Alternatif 3 (lebih teknis)</div>
+      <div class="judul-text">"Implementasi QR Code pada Sistem Kontrol Akses Parkir Kampus Berbasis Web untuk Peningkatan Keamanan Kendaraan"</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Perbedaan Karena Gratis (Tanpa Bayar)</div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+      <div style="padding: 16px; border: 1px solid #fecaca; background: #fef2f2; border-radius: 10px;">
+        <div style="font-size: 12px; font-weight: 700; color: #dc2626; margin-bottom: 10px;">❌ DIHAPUS dari sistem</div>
+        <ul style="font-size: 13px; color: #7f1d1d; line-height: 2; padding-left: 16px;">
+          <li>Tabel tarif & biaya</li>
+          <li>Modul transaksi / pembayaran</li>
+          <li>QRIS / metode bayar</li>
+          <li>Laporan pendapatan</li>
+          <li>Struk pembayaran</li>
+        </ul>
+      </div>
+      <div style="padding: 16px; border: 1px solid #bbf7d0; background: #f0fdf4; border-radius: 10px;">
+        <div style="font-size: 12px; font-weight: 700; color: #059669; margin-bottom: 10px;">✅ FOKUS sistem ini</div>
+        <ul style="font-size: 13px; color: #14532d; line-height: 2; padding-left: 16px;">
+          <li>Identitas kendaraan & pemilik</li>
+          <li>Log masuk & keluar otomatis</li>
+          <li>Monitoring slot real-time</li>
+          <li>Riwayat & rekap kendaraan</li>
+          <li>Deteksi anomali / kendaraan asing</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB ANALOGI -->
+<div id="analogi" class="content">
+  <div class="card">
+    <div class="card-title">Alur Kerja Sistem (Security Flow)</div>
+    <div class="flow">
+
+      <div class="flow-step">
+        <div class="flow-left">
+          <div class="flow-icon" style="background: #eff6ff;">📝</div>
+          <div class="flow-line"></div>
+        </div>
+        <div class="flow-body">
+          <h3>1. Registrasi Kendaraan</h3>
+          <p>Mahasiswa/dosen mendaftarkan kendaraan sekali saja ke sistem. Input: nama, NIM/NIP, plat nomor, jenis kendaraan, foto KTM. Sistem generate <strong>QR Code permanen</strong> yang dicetak/disimpan di HP.</p>
+          <div class="tags">
+            <span class="tag tag-blue">Input Data Kendaraan</span>
+            <span class="tag tag-green">Generate QR Permanen</span>
+            <span class="tag tag-orange">Verifikasi Admin</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-left">
+          <div class="flow-icon" style="background: #f0fdf4;">🔍</div>
+          <div class="flow-line"></div>
+        </div>
+        <div class="flow-body">
+          <h3>2. Kendaraan Masuk — Scan QR</h3>
+          <p>Petugas atau gate scan QR Code milik mahasiswa/dosen. Sistem otomatis mencatat <strong>waktu masuk, slot yang dituju, dan identitas kendaraan</strong>. Jika QR tidak terdaftar → akses ditolak / dicatat sebagai tamu.</p>
+          <div class="tags">
+            <span class="tag tag-green">Scan QR</span>
+            <span class="tag tag-blue">Verifikasi Database</span>
+            <span class="tag tag-red">Tolak jika Asing</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-left">
+          <div class="flow-icon" style="background: #fffbeb;">🖥️</div>
+          <div class="flow-line"></div>
+        </div>
+        <div class="flow-body">
+          <h3>3. Monitoring Real-time via Dashboard</h3>
+          <p>Admin/satpam memantau kondisi parkir langsung dari web. Tampil: peta slot (hijau = kosong, merah = terisi), daftar kendaraan yang sedang parkir, dan <strong>alert jika ada kendaraan tidak terdaftar</strong>.</p>
+          <div class="tags">
+            <span class="tag tag-blue">Dashboard Real-time</span>
+            <span class="tag tag-orange">Alert Kendaraan Asing</span>
+            <span class="tag tag-green">Peta Slot Visual</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-left">
+          <div class="flow-icon" style="background: #f5f3ff;">🚪</div>
+          <div class="flow-line"></div>
+        </div>
+        <div class="flow-body">
+          <h3>4. Kendaraan Keluar — Scan QR</h3>
+          <p>Saat keluar, scan QR kembali. Sistem mencatat waktu keluar dan durasi parkir. Slot otomatis diupdate jadi kosong. <strong>Log lengkap tersimpan</strong> sebagai bukti rekam jejak kendaraan.</p>
+          <div class="tags">
+            <span class="tag tag-green">Scan QR Keluar</span>
+            <span class="tag tag-blue">Update Slot Kosong</span>
+            <span class="tag tag-purple">Simpan Log Riwayat</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-left">
+          <div class="flow-icon" style="background: #f0fdf4;">📊</div>
+        </div>
+        <div class="flow-body">
+          <h3>5. Laporan & Rekap Keamanan</h3>
+          <p>Admin bisa lihat laporan harian/mingguan: total kendaraan masuk, kendaraan asing terdeteksi, durasi parkir terlama, rekap per jenis kendaraan. Data ini menjadi <strong>bahan evaluasi keamanan kampus</strong>.</p>
+          <div class="tags">
+            <span class="tag tag-blue">Laporan Harian</span>
+            <span class="tag tag-red">Rekap Anomali</span>
+            <span class="tag tag-green">Export PDF/Excel</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- TAB FITUR -->
+<div id="fitur" class="content">
+  <div class="card">
+    <div class="card-title">Fitur-Fitur Sistem</div>
+    <div class="fitur-grid">
+
+      <div class="fitur-card">
+        <div class="fitur-icon">📝</div>
+        <div class="fitur-title">Registrasi Kendaraan</div>
+        <div class="fitur-desc">Mahasiswa/dosen daftarkan plat nomor & identitas. Admin verifikasi. QR Code digenerate otomatis.</div>
+        <div class="fitur-badge" style="background:#eff6ff;color:#1d4ed8;">Core Feature</div>
+      </div>
+
+      <div class="fitur-card">
+        <div class="fitur-icon">📷</div>
+        <div class="fitur-title">Scan QR Masuk & Keluar</div>
+        <div class="fitur-desc">Petugas atau sistem otomatis scan QR untuk catat waktu masuk dan keluar kendaraan terdaftar.</div>
+        <div class="fitur-badge" style="background:#eff6ff;color:#1d4ed8;">Core Feature</div>
+      </div>
+
+      <div class="fitur-card">
+        <div class="fitur-icon">🗺️</div>
+        <div class="fitur-title">Peta Slot Real-time</div>
+        <div class="fitur-desc">Visualisasi kondisi slot parkir secara live. Warna hijau (kosong), merah (terisi). Bisa per zona/lantai.</div>
+        <div class="fitur-badge" style="background:#f0fdf4;color:#059669;">Monitoring</div>
+      </div>
+
+      <div class="fitur-card">
+        <div class="fitur-icon">🚨</div>
+        <div class="fitur-title">Deteksi Kendaraan Asing</div>
+        <div class="fitur-desc">Jika QR tidak dikenal atau plat belum terdaftar, sistem catat sebagai "tamu" dan beri notifikasi alert ke admin.</div>
+        <div class="fitur-badge" style="background:#fef2f2;color:#dc2626;">Keamanan</div>
+      </div>
+
+      <div class="fitur-card">
+        <div class="fitur-icon">📋</div>
+        <div class="fitur-title">Riwayat Kendaraan</div>
+        <div class="fitur-desc">Rekap lengkap kapan kendaraan masuk & keluar. Bisa dicari berdasarkan plat nomor, tanggal, atau nama.</div>
+        <div class="fitur-badge" style="background:#f5f3ff;color:#7c3aed;">Tracking</div>
+      </div>
+
+      <div class="fitur-card">
+        <div class="fitur-icon">⏰</div>
+        <div class="fitur-title">Deteksi Parkir Terlalu Lama</div>
+        <div class="fitur-desc">Sistem otomatis flagging kendaraan yang parkir melewati batas waktu tertentu (misal: lebih dari 12 jam).</div>
+        <div class="fitur-badge" style="background:#fef2f2;color:#dc2626;">Keamanan</div>
+      </div>
+
+      <div class="fitur-card">
+        <div class="fitur-icon">📊</div>
+        <div class="fitur-title">Dashboard & Laporan</div>
+        <div class="fitur-desc">Grafik statistik kunjungan harian, mingguan, per zona. Bisa export ke PDF atau Excel.</div>
+        <div class="fitur-badge" style="background:#f0fdf4;color:#059669;">Monitoring</div>
+      </div>
+
+      <div class="fitur-card">
+        <div class="fitur-icon">👤</div>
+        <div class="fitur-title">Multi-role User</div>
+        <div class="fitur-desc">Admin (kelola semua), Petugas/Satpam (scan & monitor), Mahasiswa (lihat status kendaraan sendiri).</div>
+        <div class="fitur-badge" style="background:#eff6ff;color:#1d4ed8;">Manajemen</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- TAB TECH -->
+<div id="tech" class="content">
+  <div class="card">
+    <div class="card-title">Rekomendasi Tech Stack</div>
+    <div class="tech-grid">
+
+      <div class="tech-card tc-blue">
+        <div class="tech-layer">Frontend</div>
+        <div class="tech-name">Laravel + Blade</div>
+        <div class="tech-desc">View dashboard, form registrasi, halaman monitoring, dan laporan.</div>
+        <div class="tech-pills">
+          <span class="pill">Laravel Blade</span>
+          <span class="pill">Bootstrap 5</span>
+          <span class="pill">jQuery</span>
+        </div>
+      </div>
+
+      <div class="tech-card tc-purple">
+        <div class="tech-layer">Backend</div>
+        <div class="tech-name">Laravel 10 (PHP)</div>
+        <div class="tech-desc">Logic utama: registrasi, scan QR, update slot, deteksi anomali, generate laporan.</div>
+        <div class="tech-pills">
+          <span class="pill">Laravel 10</span>
+          <span class="pill">Sanctum</span>
+          <span class="pill">Eloquent</span>
+        </div>
+      </div>
+
+      <div class="tech-card tc-green">
+        <div class="tech-layer">Database</div>
+        <div class="tech-name">MySQL</div>
+        <div class="tech-desc">Simpan data kendaraan, pengguna, slot, log masuk/keluar, dan riwayat anomali.</div>
+        <div class="tech-pills">
+          <span class="pill">MySQL 8</span>
+          <span class="pill">Migration</span>
+          <span class="pill">Seeder</span>
+        </div>
+      </div>
+
+      <div class="tech-card tc-orange">
+        <div class="tech-layer">QR Code</div>
+        <div class="tech-name">simple-qrcode</div>
+        <div class="tech-desc">Generate QR saat registrasi. Scan via kamera HP/webcam petugas menggunakan library browser.</div>
+        <div class="tech-pills">
+          <span class="pill">simple-qrcode</span>
+          <span class="pill">Html5-qrcode</span>
+          <span class="pill">jsQR</span>
+        </div>
+      </div>
+
+      <div class="tech-card tc-blue">
+        <div class="tech-layer">Grafik & Chart</div>
+        <div class="tech-name">Chart.js</div>
+        <div class="tech-desc">Visualisasi statistik kunjungan, grafik harian/mingguan, dan pie chart per jenis kendaraan.</div>
+        <div class="tech-pills">
+          <span class="pill">Chart.js</span>
+          <span class="pill">DataTables</span>
+        </div>
+      </div>
+
+      <div class="tech-card tc-red">
+        <div class="tech-layer">Real-time (Opsional)</div>
+        <div class="tech-name">Pusher / Laravel Echo</div>
+        <div class="tech-desc">Jika ingin dashboard update otomatis tanpa refresh saat ada kendaraan masuk/keluar.</div>
+        <div class="tech-pills">
+          <span class="pill">Pusher</span>
+          <span class="pill">Laravel Echo</span>
+          <span class="pill">WebSocket</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Lingkungan Development</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+      <div style="padding: 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; text-align: center;">
+        <div style="font-size: 24px; margin-bottom: 6px;">🖥️</div>
+        <div style="font-size: 13px; font-weight: 700;">Laragon</div>
+        <div style="font-size: 11px; color: var(--muted);">Dev server lokal terbaik untuk Laravel di Windows</div>
+      </div>
+      <div style="padding: 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; text-align: center;">
+        <div style="font-size: 24px; margin-bottom: 6px;">💻</div>
+        <div style="font-size: 13px; font-weight: 700;">VS Code</div>
+        <div style="font-size: 11px; color: var(--muted);">Editor + ekstensi Laravel & PHP Intelephense</div>
+      </div>
+      <div style="padding: 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; text-align: center;">
+        <div style="font-size: 24px; margin-bottom: 6px;">🐬</div>
+        <div style="font-size: 13px; font-weight: 700;">phpMyAdmin</div>
+        <div style="font-size: 11px; color: var(--muted);">Manajemen database MySQL via GUI</div>
+      </div>
+      <div style="padding: 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; text-align: center;">
+        <div style="font-size: 24px; margin-bottom: 6px;">🧪</div>
+        <div style="font-size: 13px; font-weight: 700;">Postman</div>
+        <div style="font-size: 11px; color: var(--muted);">Testing API endpoint jika menggunakan REST</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB DATABASE -->
+<div id="database" class="content">
+  <div class="card">
+    <div class="card-title">Struktur Tabel Database (Tanpa Tabel Pembayaran)</div>
+    <div class="db-grid">
+
+      <div class="db-table">
+        <div class="db-header" style="background: #eff6ff; color: #1d4ed8;"><span>👤</span> tbl_users</div>
+        <div class="db-row"><span>id</span><span style="display:flex;gap:4px"><span class="col-type">INT</span><span class="bpk">PK</span></span></div>
+        <div class="db-row"><span>nama</span><span class="col-type">VARCHAR(100)</span></div>
+        <div class="db-row"><span>nim_nip</span><span style="display:flex;gap:4px"><span class="col-type">VARCHAR(20)</span><span class="buq">UQ</span></span></div>
+        <div class="db-row"><span>email</span><span class="col-type">VARCHAR(100)</span></div>
+        <div class="db-row"><span>password</span><span class="col-type">VARCHAR(255)</span></div>
+        <div class="db-row"><span>role</span><span class="col-type">ENUM(admin,petugas,mahasiswa)</span></div>
+        <div class="db-row"><span>foto_ktm</span><span class="col-type">VARCHAR(255) NULL</span></div>
+        <div class="db-row"><span>status</span><span class="col-type">ENUM(aktif,nonaktif)</span></div>
+      </div>
+
+      <div class="db-table">
+        <div class="db-header" style="background: #f5f3ff; color: #7c3aed;"><span>🚗</span> tbl_kendaraan</div>
+        <div class="db-row"><span>id</span><span style="display:flex;gap:4px"><span class="col-type">INT</span><span class="bpk">PK</span></span></div>
+        <div class="db-row"><span>user_id</span><span style="display:flex;gap:4px"><span class="col-type">INT</span><span class="bfk">FK</span></span></div>
+        <div class="db-row"><span>plat_nomor</span><span style="display:flex;gap:4px"><span class="col-type">VARCHAR(15)</span><span class="buq">UQ</span></span></div>
+        <div class="db-row"><span>jenis</span><span class="col-type">ENUM(motor,mobil)</span></div>
+        <div class="db-row"><span>merek</span><span class="col-type">VARCHAR(50)</span></div>
+        <div class="db-row"><span>warna</span><span class="col-type">VARCHAR(30)</span></div>
+        <div class="db-row"><span>qr_token</span><span style="display:flex;gap:4px"><span class="col-type">VARCHAR(255)</span><span class="buq">UQ</span></span></div>
+        <div class="db-row"><span>qr_image</span><span class="col-type">VARCHAR(255)</span></div>
+        <div class="db-row"><span>status_verifikasi</span><span class="col-type">ENUM(pending,terverifikasi)</span></div>
+      </div>
+
+      <div class="db-table">
+        <div class="db-header" style="background: #f0fdf4; color: #059669;"><span>🅿️</span> tbl_slot_parkir</div>
+        <div class="db-row"><span>id</span><span style="display:flex;gap:4px"><span class="col-type">INT</span><span class="bpk">PK</span></span></div>
+        <div class="db-row"><span>kode_slot</span><span style="display:flex;gap:4px"><span class="col-type">VARCHAR(10)</span><span class="buq">UQ</span></span></div>
+        <div class="db-row"><span>zona</span><span class="col-type">VARCHAR(20)</span></div>
+        <div class="db-row"><span>jenis</span><span class="col-type">ENUM(motor,mobil)</span></div>
+        <div class="db-row"><span>status</span><span class="col-type">ENUM(tersedia,terisi)</span></div>
+        <div class="db-row"><span>lantai</span><span class="col-type">VARCHAR(10) NULL</span></div>
+      </div>
+
+      <div class="db-table">
+        <div class="db-header" style="background: #fffbeb; color: #d97706;"><span>📋</span> tbl_log_parkir</div>
+        <div class="db-row"><span>id</span><span style="display:flex;gap:4px"><span class="col-type">INT</span><span class="bpk">PK</span></span></div>
+        <div class="db-row"><span>kendaraan_id</span><span style="display:flex;gap:4px"><span class="col-type">INT</span><span class="bfk">FK</span></span></div>
+        <div class="db-row"><span>slot_id</span><span style="display:flex;gap:4px"><span class="col-type">INT</span><span class="bfk">FK</span></span></div>
+        <div class="db-row"><span>petugas_id</span><span style="display:flex;gap:4px"><span class="col-type">INT</span><span class="bfk">FK</span></span></div>
+        <div class="db-row"><span>waktu_masuk</span><span class="col-type">DATETIME</span></div>
+        <div class="db-row"><span>waktu_keluar</span><span class="col-type">DATETIME NULL</span></div>
+        <div class="db-row"><span>durasi_menit</span><span class="col-type">INT NULL</span></div>
+        <div class="db-row"><span>status</span><span class="col-type">ENUM(aktif,selesai)</span></div>
+        <div class="db-row"><span>flag_lama</span><span class="col-type">TINYINT(1) DEFAULT 0</span></div>
+      </div>
+
+      <div class="db-table">
+        <div class="db-header" style="background: #fef2f2; color: #dc2626;"><span>🚨</span> tbl_anomali</div>
+        <div class="db-row"><span>id</span><span style="display:flex;gap:4px"><span class="col-type">INT</span><span class="bpk">PK</span></span></div>
+        <div class="db-row"><span>plat_nomor</span><span class="col-type">VARCHAR(15)</span></div>
+        <div class="db-row"><span>waktu_deteksi</span><span class="col-type">DATETIME</span></div>
+        <div class="db-row"><span>jenis_anomali</span><span class="col-type">ENUM(tidak_terdaftar,parkir_lama,qr_invalid)</span></div>
+        <div class="db-row"><span>lokasi</span><span class="col-type">VARCHAR(50)</span></div>
+        <div class="db-row"><span>status_tindak</span><span class="col-type">ENUM(belum,sudah)</span></div>
+        <div class="db-row"><span>petugas_id</span><span style="display:flex;gap:4px"><span class="col-type">INT</span><span class="bfk">FK NULL</span></span></div>
+        <div class="db-row"><span>keterangan</span><span class="col-type">TEXT NULL</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Relasi Antar Tabel</div>
+    <div class="rel-item"><span class="rel-from">tbl_users</span><span class="rel-arrow">→</span><span class="rel-to">tbl_kendaraan</span><span class="rel-type">1 : Many (1 user bisa punya > 1 kendaraan)</span></div>
+    <div class="rel-item"><span class="rel-from">tbl_kendaraan</span><span class="rel-arrow">→</span><span class="rel-to">tbl_log_parkir</span><span class="rel-type">1 : Many (setiap kunjungan = 1 log)</span></div>
+    <div class="rel-item"><span class="rel-from">tbl_slot_parkir</span><span class="rel-arrow">→</span><span class="rel-to">tbl_log_parkir</span><span class="rel-type">1 : Many</span></div>
+    <div class="rel-item"><span class="rel-from">tbl_users (petugas)</span><span class="rel-arrow">→</span><span class="rel-to">tbl_log_parkir</span><span class="rel-type">1 : Many (petugas yang scan)</span></div>
+    <div class="rel-item"><span class="rel-from">tbl_anomali</span><span class="rel-arrow">→</span><span class="rel-to">tbl_users (petugas)</span><span class="rel-type">Many : 1 (petugas yang tindak)</span></div>
+  </div>
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
